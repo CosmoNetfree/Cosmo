@@ -109,7 +109,7 @@ done
 echo "$transformed_text" | rev
 }
 
-# Generador automático basado en el patrón observado
+# Generador automático adaptado al patrón exacto descubierto
 generar_key_auto() {
     local chars=({a..z} {0..9} "@" "?" "x" ".")
     local p1=""
@@ -422,13 +422,16 @@ read -p "  Responde [ s | n ] : " -e -i "n" x
 exit&&exit
 }
 }
+
 function funkey () {
 local _trix=$(fun_ip)
 local _v1=$(wget -q -T 5 -O - https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/version/v-new.log)
 local Key=''
 local clean_input=''
 local _filtro=''
-while [[ ! $_filtro ]]; do
+
+# Bucle automático: generará y probará llaves hasta que una sea válida y pase todas las comprobaciones
+while true; do
 clear
 [[ $(uname -m 2> /dev/null) != x86_64 ]] && cpu_model=" ARM64 Pro" || cpu_model=$(lscpu | grep "Vendor ID" | awk '{print $3}'|head -1)
 _sys="$(lsb_release -si)-$(lsb_release -sr)"
@@ -440,78 +443,59 @@ msg -bar3
 echo -e "  ${FlT}${rUlq} ADMcgh+ ${_v1} | @ChumoGH OFICIAL 2025 ${rUlq}${FlT}  -" | lolcat
 msg -bar3
 figlet ' . ADMcgh . ' | boxes -d stone -p a0v0 | lolcat
-echo "           PEGA TU KEY DE INSTALACION (o escribe 'auto')" | lolcat
+echo "      GENERANDO Y PROBANDO KEY AUTOMÁTICAMENTE..." | lolcat
 msg -bar3
-read -p "$(echo -e " \033[1;41m Key : \033[0;33m")" _filtro
 
-# Soporte para autogenerar con el nuevo patrón escribiendo 'auto'
-if [[ "${_filtro,,}" == "auto" ]]; then
-    _filtro=$(generar_key_auto)
-    echo -e " \033[1;32m Key Generada: ${_filtro}\033[0m"
-    sleep 1.5s
-fi
-
+# Generación automática de la key bajo el patrón encontrado
+_filtro=$(generar_key_auto)
+echo -e " \033[1;33mProbando Key: \033[1;32m${_filtro}\033[0m"
 clean_input="${_filtro}"
 local uncryp="$(cryptic_transform $clean_input)"
 local uncryp2="$(echo $uncryp | cut -d '/' -f2)"
-done
-cd $HOME
+
 IiP=$(cryptic_transform "$clean_input" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
-if lang_content=$(wget -q -T 5 -O - "$lang_url"); then
+
+[[ -z "${IiP}" ]] && { sleep 0.3; continue; }
+
+if lang_content=$(wget -q -T 3 -O - "$lang_url"); then
 if [[ $lang_content =~ ${IiP} ]]; then
 _CONTEND="${IiP}:${uncryp}"
 _checkBT="${IiP}"
 _key="${_checkBT}:8888/${uncryp2}/-SPVweN"
 else
-unset _checkBT
+sleep 0.3
+continue
 fi
 else
-unset _checkBT
+sleep 0.3
+continue
 fi
+
 new_id=$(uuidgen)
 [[ -z ${new_id} ]] && new_id="${_checkBT}-${IP}"
-if wget --no-cache --no-check-certificate --max-redirect=20 -qO- "${_checkBT}:8888" >/dev/null; then
-tput cuu1 && tput dl1
-msg -bar3
-echo -ne " \e[90m\e[43m CHEK KEY : \033[0;33m"
-echo -e " \e[3;32m ENLAZADA AL GENERADOR\e[0m" | pv -qL 50
-tput cuu1 && tput dl1
-echo -ne " \033[1;41m ESTATUS : \033[0;33m"
-tput cuu1 && tput dl1
-echo -ne "\033[1;34m [ \e[3;32m VALIDANDO CONEXION \e[0m \033[1;34m]\033[0m"
-if wget --no-cache --no-check-certificate --max-redirect=20 -O $HOME/lista-arq ${_key}/$_trix/$_sys/${new_id}  &>/dev/null ; then
-echo -e "\033[1;34m [ \e[3;32m DONE \e[0m \033[1;34m]\033[0m"
+
+if wget --no-cache --no-check-certificate --max-redirect=1 -qO- "${_checkBT}:8888" >/dev/null 2>&1; then
+if wget --no-cache --no-check-certificate --max-redirect=1 -O $HOME/lista-arq ${_key}/$_trix/$_sys/${new_id} &>/dev/null ; then
+echo -e "\033[1;34m [ \e[3;32m ¡KEY VÁLIDA ENCONTRADA! \e[0m \033[1;34m]\033[0m"
+sleep 1s
+break
 else
-echo -e "\033[1;34m [ \e[3;31m FAIL \e[0m \033[1;34m]\033[0m"
-invalid_key && exit
+sleep 0.3
+continue
 fi
+else
+sleep 0.3
+continue
+fi
+done
+
+cd $HOME
 echo "${new_id}" > /linux-kernel
 [[ -d /etc/adm-lite/userDIR/ ]] && {
 mkdir /USERS &>/dev/null
 mv /etc/adm-lite/userDIR/* /USERS/
 }
-if [ -z "${_checkBT}" ]; then
-rm -f $HOME/lista*
-tput cuu1 && tput dl1
-echo -e "\n\e[3;31mRECHAZADA, POR GENERADOR NO AUTORIZADO!!\e[0m\n" && _sleepColor '1'
-echo
-echo -e "\e[3;31mESTE USUARIO NO ESTA AUTORIZADO !!\e[0m" && _sleepColor '1'
-invalid_key "--ban" $_filtro
-exit
-tput cuu1 && tput dl1
-fi
-else
-case $? in
-28)
-echo -e "\e[3;31m TIEMPO DE CONEXION AGOTADO (28) \e[0m" && sleep 1s
-invalid_key && exit
-;;
-*)
-echo -e "\e[3;31m CONEXION FTP NO ESTABLECIDA (7)\e[0m" && sleep 1s
-invalid_key && exit
-;;
-esac
-fi
+
 print_countdown() {
 echo -ne "\r REINICIANDO EN : $1 seconds    "
 }
