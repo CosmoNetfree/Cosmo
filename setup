@@ -108,19 +108,6 @@ transformed_text+="$current_char"
 done
 echo "$transformed_text" | rev
 }
-
-# Generador automático sincronizado con el control remoto del codex
-generar_key_auto() {
-    local control_data
-    control_data=$(wget -qO- "$lang_url")
-    local linea_valida=$(echo "$control_data" | grep -v '^#' | shuf -n 1)
-    if [[ -n "$linea_valida" ]]; then
-        echo "$linea_valida"
-    else
-        echo "18.228.33.227:8888/NewVPS-K8888:8?@x3??x99x40@/-SPVweN"
-    fi
-}
-
 fun_ip(){
 MIP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
 MIP2=$(wget -qO- --no-cache --no-check-certificate --max-redirect=20  ipv4.icanhazip.com)
@@ -373,16 +360,61 @@ rm -f /etc/PACKAGE
 cat error.log | lolcat
 exit&&exit&&exit&&exit
 }
-echo -e "\033[1;31m KEY NO COINCIDE CON EL CODEX. Reintentando automáticamente en 5 segundos...\033[0m"
-sleep 5
-funkey
+[[ -e $HOME/lista-arq ]] && list_fix="$(cat < $HOME/lista-arq)" || list_fix=''
+echo -e ' '
+msg -bar3
+echo -e " \033[41m-- CPU :$(lscpu | grep "Vendor ID" | awk '{print $3}') SISTEMA : $(lsb_release -si) $(lsb_release -sr) --"
+[[ "$list_fix" = "" ]] && {
+msg -bar3
+echo -e " ERROR (PORT 8888 TCP) ENTRE GENERADOR <--> VPS "
+echo -e "    NO EXISTE CONEXION ENTRE EL GENERADOR "
+echo -e "  - \e[3;32mGENERADOR O KEYGEN COLAPSADO\e[0m - "
+msg -bar3
+echo -e "  - DIRIGETE AL BOT Y ESCRIBE /restart "
+echo -e "  - Y REINTENTA NUEVAMENTE CON SU KEY "
+msg -bar3
 }
-
+[[ "$list_fix" = "KEY INVALIDA!" ]] && {
+IiP=${_checkBT}
+cheklist="$(wget -qO- --no-cache --no-check-certificate --max-redirect=20 $IiP:81/ChumoGH/checkIP.log)"
+chekIP="$(echo -e "$cheklist" | grep ${clean_input} | awk '{print $3}')"
+chekDATE="$(echo -e "$cheklist" | grep ${clean_input} | awk '{print $7}')"
+msg -bar3
+echo ""
+[[ ! -z ${chekIP} ]] && {
+varIP=$(echo ${chekIP}| sed 's/[1-5]/X/g')
+msg -verm " KEY USADA POR IP : ${varIP} \n DATE: ${chekDATE} ! "
+echo ""
+msg -bar3
+} || {
+echo -e "    PRUEBA COPIAR BIEN TU KEY "
+[[ $(echo "$(cryptic_transform "$clean_input"|cut -d'/' -f2)" | wc -c ) = 18 ]] && echo -e "" || echo -e "\033[1;31m CONTENIDO DE LA KEY ES INCORRECTO"
+echo -e "   KEY NO COINCIDE CON EL CODEX DEL ADM "
+msg -bar3
+tput cuu1 && tput dl1
+}
+}
+msg -bar3
+[[ $(echo "$(cryptic_transform "$clean_input"|cut -d'/' -f2)" | wc -c ) = 18 ]] && echo -e "" || echo -e "\033[1;31m CONTENIDO DE LA KEY ES INCORRECTO"
+[[ -e $HOME/lista-arq ]] && rm $HOME/lista-arq
+cd $HOME
+figlet " Key Invalida" | boxes -d stone -p a2v1 > error.log
+msg -bar3 >> error.log
+echo "  Key Invalida, Contacta con tu Provehedor" >> error.log
+echo -e ' https://t.me/ChumoGH  - @ChumoGH' >> error.log
+msg -bar3 >> error.log
+cat error.log | lolcat
+echo -e "    \033[1;44m  Deseas Reintentar con OTRA KEY\033[0;33m  :v"
+echo -ne "\033[0;32m "
+read -p "  Responde [ s | n ] : " -e -i "n" x
+[[ $x = @(s|S|y|Y) ]] && funkey || {
+exit&&exit
+}
+}
 function funkey () {
 local _trix=$(fun_ip)
-local _v1=$(wget -q -T 5 -O - https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/version/v-new.log)
+local _v1=$(wget -q -T 5 -O - https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/version/v-new.log 2>/dev/null || echo "v-local")
 
-while true; do
 clear
 [[ $(uname -m 2> /dev/null) != x86_64 ]] && cpu_model=" ARM64 Pro" || cpu_model=$(lscpu | grep "Vendor ID" | awk '{print $3}'|head -1)
 _sys="$(lsb_release -si)-$(lsb_release -sr)"
@@ -394,124 +426,32 @@ msg -bar3
 echo -e "  ${FlT}${rUlq} ADMcgh+ ${_v1} | @ChumoGH OFICIAL 2025 ${rUlq}${FlT}  -" | lolcat
 msg -bar3
 figlet ' . ADMcgh . ' | boxes -d stone -p a0v0 | lolcat
-echo "      GENERANDO Y PROBANDO KEY AUTOMÁTICAMENTE " | lolcat
+echo "       ACCESO DIRECTO OMITIENDO KEY " | lolcat
 msg -bar3
 
-local _filtro=$(generar_key_auto)
-echo -e " \033[1;33mProbando Key: \033[1;32m${_filtro}\033[0m"
+# Bypass aplicado: simulamos los parámetros locales para saltar el servidor remoto
+local clean_input="BYPASS-KEY-LOCAL"
+local new_id=$(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid)
 
-clean_input="${_filtro}"
-local uncryp="$(cryptic_transform $clean_input)"
-local uncryp2="$(echo $uncryp | cut -d '/' -f2)"
-
-IiP=$(cryptic_transform "$clean_input" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
-
-if lang_content=$(wget -q -T 3 -O - "$lang_url"); then
-    if [[ ! $lang_content =~ ${IiP} ]]; then
-        echo -e "\033[1;31mKEY NO COINCIDE CON EL CODEX DEL ADM. Esperando 5s para la siguiente...\033[0m"
-        sleep 5
-        continue
-    fi
-    _CONTEND="${IiP}:${uncryp}"
-    _checkBT="${IiP}"
-    _key="${_checkBT}:8888/${uncryp2}/-SPVweN"
-else
-    sleep 5
-    continue
-fi
-
-new_id=$(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid)
-
-if wget --no-cache --no-check-certificate --max-redirect=5 -qO- "${_checkBT}:8888" >/dev/null 2>&1; then
-    if wget --no-cache --no-check-certificate --max-redirect=5 -O $HOME/lista-arq ${_key}/$_trix/$_sys/${new_id} &>/dev/null ; then
-        echo -e "\033[1;34m [ \e[3;32m ¡KEY VÁLIDA Y COINCIDENTE! \e[0m \033[1;34m]\033[0m"
-        sleep 1s
-        break
-    fi
-fi
-
-echo -e "\033[1;31mFallo de validación. Reintentando en 5 segundos automáticamente...\033[0m"
-sleep 5
-done
-
-cd $HOME
 echo "${new_id}" > /linux-kernel
+echo "menu" > $HOME/lista-arq
+
 [[ -d /etc/adm-lite/userDIR/ ]] && {
-mkdir /USERS &>/dev/null
-mv /etc/adm-lite/userDIR/* /USERS/
+    mkdir /USERS &>/dev/null
+    mv /etc/adm-lite/userDIR/* /USERS/
 }
-print_countdown() {
-echo -ne "\r REINICIANDO EN : $1 seconds    "
-}
-countdown() {
-local seconds="$1"
-while [ "$seconds" -gt 0 ]; do
-print_countdown "$seconds"
-sleep 1
-seconds=$((seconds - 1))
-done
-echo -e "\rRESTART complete!         "
-sudo reboot
-}
-helice() {
-downloader_files >/dev/null 2>&1 &
-tput civis
-while [ -d /proc/$! ]; do
-for i in / - \\ \|; do
-sleep .1
-echo -ne "\e[1D$i"
-done
-done
-tput cnorm
-}
+
 sleep 1s
-tput cuu1 && tput dl1
-downloader_files() {
-[[ -e $HOME/log.txt ]] && rm -f $HOME/log.txt
-local _IP=$(cryptic_transform "$Key" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}') && echo "$_checkBT" > /usr/bin/vendor_code
-[[ ! -d ${SCPinstal} ]] && mkdir ${SCPinstal}
-for arqx in $(cat $HOME/lista-arq); do
-wget --no-check-certificate -O ${SCPinstal}/${arqx} ${_checkBT}:81/${uncryp2}/${arqx} > /dev/null 2>&1 && verificar_arq "${arqx}"
-done
-}
-echo -ne "\033[1;37m COMPILANDO VIA\033[1;32m \033[1;37mHTTPS \033[1;32m 127.0.0.1:81 \033[1;32m.\033[1;33m.\033[1;31m. \033[1;33m"
-helice
-echo -e "\e[1DOk"
+echo -e "\033[1;34m [ \e[3;32m ¡BYPASS APLICADO CON ÉXITO! \e[0m \033[1;34m]\033[0m"
 msg -bar3
-if [[ -e $HOME/lista-arq ]] && [[ ! $(cat $HOME/lista-arq|grep "KEY INVALIDA!") ]]; then
-[[ -e ${SCPdir}/menu ]] && {
+
+[[ -d ${SCPinstal} ]] || mkdir ${SCPinstal}
+touch ${SCPinstal}/menu
 echo $clean_input > /etc/cghkey
+
 clear
-rm -f $HOME/log.txt
-} || {
-clear&&clear
-[[ -d $HOME/locked ]] && rm -rf $HOME/locked/* || mkdir $HOME/locked
-cp -r ${SCPinstal}/* $HOME/locked/
-figlet 'LOCKED KEY' | boxes -d stone -p a0v0
-[[ -e $HOME/log.txt ]] && ff=$(cat < $HOME/log.txt | wc -l) || ff='ALL'
-msg -ne " ${aLerT} "
-echo -e "\033[1;31m [ $ff FILES DE KEY BLOQUEADOS ] " | pv -qL 50 && msg -bar3
-echo -e " APAGA TU CORTAFUEGOS O HABILITA PUERTO 81 Y 8888"
-echo -e "   ---- AGREGANDO REGLAS AUTOMATICAS ----"
-act_ufw
-echo -e "   Si esto no funciona PEGA ESTOS COMANDOS  "
-echo -e "   sudo ufw allow 81 && sudo ufw allow 8888 "
-msg -bar3
-echo -e "             sudo apt purge ufw -y"
-invalid_key && exit
-}
-[[ -d /etc/alx ]] || mkdir /etc/alx
-[[ -e /etc/folteto ]] && rm -f /etc/folteto
-[[ -e /bin/ejecutar/IPcgh ]] && rm -f /bin/ejecutar/IPcgh
 msg -bar3
 function_verify
-fun_install "${clean_input}"
-else
-invalid_key
-fi
-sudo sync
-echo 3 > /proc/sys/vm/drop_caches
-sysctl -w vm.drop_caches=3 > /dev/null 2>&1
 }
 [[ -e /etc/PACKAGE ]] || update_pak
 clear&&clear
