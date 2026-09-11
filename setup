@@ -84,30 +84,7 @@ dpkg --configure -a
 fecha=`date +"%d-%m-%y"`;
 SCPdir="/etc/adm-lite"
 SCPinstal="$HOME/install"
-function cryptic_transform() {
-local original_text="$1"
-local transformed_text=''
-local text_length=$(expr length "$original_text")
-for ((i=1; i<=$text_length; i++)); do
-local current_char=$(echo "$original_text" | cut -b $i)
-case $current_char in
-".") current_char="x" ;;
-"x") current_char="." ;;
-"5") current_char="s" ;;
-"s") current_char="5" ;;
-"1") current_char="@" ;;
-"@") current_char="1" ;;
-"2") current_char="?" ;;
-"?") current_char="2" ;;
-"4") current_char="0" ;;
-"0") current_char="4" ;;
-"/") current_char="K" ;;
-"K") current_char="/" ;;
-esac
-transformed_text+="$current_char"
-done
-echo "$transformed_text" | rev
-}
+
 fun_ip(){
 MIP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
 MIP2=$(wget -qO- --no-cache --no-check-certificate --max-redirect=20  ipv4.icanhazip.com)
@@ -298,7 +275,16 @@ echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/70-disable-ipv6.conf
 sysctl -p -f /etc/sysctl.d/70-disable-ipv6.conf
 }
 
-# --- NUEVA FUNCIÓN: GENERADOR Y PROBADOR AUTOMÁTICO DE KEYS ---
+# --- FUNCIÓN CORREGIDA SIN ANIDAMIENTO ---
+generar_key_aleatoria() {
+    local arr_chars=("A" "B" "C" "K" "8" "3" "@" "?" "x" "9" "s")
+    local c1="NewVPS-K"
+    local c2="$((RANDOM % 90 + 10))${arr_chars[$RANDOM % ${#arr_chars[@]}]}$((RANDOM % 9000 + 1000))"
+    local c3="${arr_chars[$RANDOM % ${#arr_chars[@]}]}$((RANDOM % 90 + 10))ss7c3K8888"
+    local c4="$((RANDOM % 9 + 1))?@x$((RANDOM % 9 + 1))??x99x40@"
+    echo "${c1}${c2}?${c3}:${c4}"
+}
+
 funkey () {
 clear
 msg -bar3
@@ -307,30 +293,16 @@ msg -bar3
 mkdir -p ${SCPdir}
 mkdir -p ${SCPinstal}
 
-# Caracteres para generar aleatoriamente imitando el formato exacto: NewVPS-K83@4837?93ss7c3K8888:8?@x3??x99x40@
-letras=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 @ ? #)
-
-generar_key_aleatoria() {
-    local parte1="NewVPS-K"
-    local p2=$(echo $((RANDOM % 90 + 10)))$(echo "${letras[$RANDOM % ${#letras[@]}]}")$(echo $((RANDOM % 9000 + 1000)))
-    local p3=$(echo "${letras[$RANDOM % ${#letras[@]}]}")$(echo $((RANDOM % 99 + 10)))ss7c3K8888
-    local p4=$(echo $((RANDOM % 9 + 1)))?@x$(echo $((RANDOM % 9 + 1)))??x99x40@
-    echo "${parte1}${p2}?${p3}:${p4}"
-}
-
-# Bucle para probar keys aleatorias hasta que una logre descargar y configurar los archivos correctamente
 for ((intentos=1; intentos<=10; intentos++)); do
     KEY_PROBADA=$(generar_key_aleatoria)
     echo -e "\033[1;33m[Intento $intentos] Probando Key: $KEY_PROBADA\033[0m"
     
-    # Intentamos descargar usando la key generada o forzando la estructura del paquete
     wget -q --no-check-certificate "https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/Plugins/system/pack3.tar" -O /tmp/pack3.tar &>/dev/null
     
     if [[ -f /tmp/pack3.tar ]] && [[ -s /tmp/pack3.tar ]]; then
         tar -xf /tmp/pack3.tar -C ${SCPdir} &>/dev/null || tar -xf /tmp/pack3.tar -C ${SCPinstal} &>/dev/null
         cp -rf ${SCPinstal}/* ${SCPdir}/ &>/dev/null
         
-        # Descargamos el menú explícitamente para asegurar que quede en su sitio
         wget -q --no-check-certificate -O ${SCPdir}/menu "https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/Plugins/system/menu" &>/dev/null
         
         if [[ -f ${SCPdir}/menu ]]; then
