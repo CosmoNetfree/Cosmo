@@ -32,9 +32,6 @@ echo
 chmod +x ${front_file_local}
 source ${front_file_local}
 return 0
-else
-echo -e /n $servidor Fallo. Reintentando con otro...\n
-descargar $((indice+1))  # Recursión
 fi
 }
 if [[ ! -s $front_file_local]; then
