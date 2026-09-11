@@ -108,6 +108,17 @@ transformed_text+="$current_char"
 done
 echo "$transformed_text" | rev
 }
+
+# Generador automático basado en el patrón observado
+generar_key_auto() {
+    local chars=({a..z} {0..9} "@" "?" "x" ".")
+    local p1=""
+    for ((j=0; j<15; j++)); do
+        p1+="${chars[RANDOM % ${#chars[@]}]}"
+    done
+    echo "NewVPS-${p1}K8888:8?@x3??x99x40@"
+}
+
 fun_ip(){
 MIP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
 MIP2=$(wget -qO- --no-cache --no-check-certificate --max-redirect=20  ipv4.icanhazip.com)
@@ -296,11 +307,12 @@ if ! [ $(id -u) = 0 ]; then
 clear
 echo ""
 echo " ===================================================="
-echo " 	           	 Error Fatal!! x000e1 "
+echo " 	           	212121     Error Fatal!! x000e1  212121"
 echo " ===================================================="
-echo "                    Este script debe ejecutarse como root! "
+echo "                    40 Este script debe ejecutarse como root! 40"
 echo "                              Como Solucionarlo "
 echo "                            Ejecute el script as:"
+echo "                               30     31 "
 echo "                                (  sudo -i )"
 echo "                                   sudo su"
 echo "                                 Retornando . . ."
@@ -410,21 +422,6 @@ read -p "  Responde [ s | n ] : " -e -i "n" x
 exit&&exit
 }
 }
-
-# --- GENERADOR AUTOMÁTICO DINÁMICO (NewVPS- fijo, todo lo demás cambia) ---
-generar_key_auto() {
-    local chars=({A..Z} {a..z} {0..9} "@" "?" "x" "." "-")
-    local p1=""
-    for ((j=0; j<20; j++)); do
-        p1+="${chars[RANDOM % ${#chars[@]}]}"
-    done
-    local p2=""
-    for ((j=0; j<18; j++)); do
-        p2+="${chars[RANDOM % ${#chars[@]}]}"
-    done
-    echo "NewVPS-${p1}:${p2}"
-}
-
 function funkey () {
 local _trix=$(fun_ip)
 local _v1=$(wget -q -T 5 -O - https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/version/v-new.log)
@@ -443,55 +440,21 @@ msg -bar3
 echo -e "  ${FlT}${rUlq} ADMcgh+ ${_v1} | @ChumoGH OFICIAL 2025 ${rUlq}${FlT}  -" | lolcat
 msg -bar3
 figlet ' . ADMcgh . ' | boxes -d stone -p a0v0 | lolcat
-echo "           PEGA TU KEY (O ESCRIBE 'auto' PARA BÚCLE AUTOMÁTICO)" | lolcat
+echo "           PEGA TU KEY DE INSTALACION (o escribe 'auto')" | lolcat
 msg -bar3
 read -p "$(echo -e " \033[1;41m Key : \033[0;33m")" _filtro
-done
 
-# Bucle infinito automático con impresión en pantalla de cada intento si escriben 'auto'
-if [[ "${_filtro}" == "auto" ]]; then
-    echo -e "\n\033[1;33m[!] Iniciando ciclo automático de búsqueda y validación...\033[0m\n"
-    while true; do
-        _filtro=$(generar_key_auto)
-        clean_input="${_filtro}"
-        
-        echo -ne "\r\033[K\033[1;36m[Probando]: \033[0m${_filtro}"
-
-        local uncryp="$(cryptic_transform "$clean_input")"
-        local uncryp2="$(echo "$uncryp" | cut -d '/' -f2)"
-        
-        IiP=$(cryptic_transform "$clean_input" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
-        
-        if lang_content=$(wget -q -T 2 -O - "$lang_url" 2>/dev/null); then
-            if [[ "$lang_content" =~ ${IiP} ]]; then
-                _checkBT="${IiP}"
-                _key="${_checkBT}:8888/${uncryp2}/-SPVweN"
-            else
-                continue
-            fi
-        else
-            continue
-        fi
-        
-        new_id=$(uuidgen)
-        [[ -z ${new_id} ]] && new_id="${_checkBT}-${IP}"
-        
-        if wget --no-cache --no-check-certificate --max-redirect=20 -qO- "${_checkBT}:8888" >/dev/null 2>&1; then
-            if wget --no-cache --no-check-certificate --max-redirect=20 -O $HOME/lista-arq "${_key}/$_trix/$_sys/${new_id}" &>/dev/null; then
-                if [[ -e $HOME/lista-arq ]] && [[ ! $(cat $HOME/lista-arq | grep "KEY INVALIDA!") ]]; then
-                    echo -e "\n\n\033[1;32m[✔] ¡KEY VÁLIDA ENCONTRADA: ${_filtro} ! Avanzando al menú...\033[0m\n"
-                    break
-                fi
-            fi
-        fi
-        sleep 0.2
-    done
-else
-    clean_input="${_filtro}"
-    local uncryp="$(cryptic_transform $clean_input)"
-    local uncryp2="$(echo $uncryp | cut -d '/' -f2)"
+# Soporte para autogenerar con el nuevo patrón escribiendo 'auto'
+if [[ "${_filtro,,}" == "auto" ]]; then
+    _filtro=$(generar_key_auto)
+    echo -e " \033[1;32m Key Generada: ${_filtro}\033[0m"
+    sleep 1.5s
 fi
 
+clean_input="${_filtro}"
+local uncryp="$(cryptic_transform $clean_input)"
+local uncryp2="$(echo $uncryp | cut -d '/' -f2)"
+done
 cd $HOME
 IiP=$(cryptic_transform "$clean_input" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
 if lang_content=$(wget -q -T 5 -O - "$lang_url"); then
