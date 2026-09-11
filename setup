@@ -27,11 +27,12 @@ fi
 local url=${ENLACES[$indice]}
 local servidor=${SERVIDORES[$indice]}
 echo -ne  Intentando descargar desde: $servidor
-if wget -q --no-check-certificate -t3 -T3 -O ront_file_local rl then
+if wget -q --no-check-certificate -t3 -T3 -O ront_file_local url then
 echo 
 chmod +x ${front_file_local}
 source ${front_file_local}
 return 0
+else
 echo -e /n $servidor Fallo. Reintentando con otro...\n
 descargar $((indice+1))  # Recursión
 fi
