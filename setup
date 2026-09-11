@@ -5,7 +5,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/ga
 front_file_local="/bin/ejecutar/msg"
 ENLACES=(
 https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/Plugins/system/styles.cpp
-https://www.dropbox.com/scl/fi/je70qpfmwu6416ail48zq/msg?rlkey=jg8eazt0p95pkq0xj4ckrrt1y
+https://www.dropbox.com/scl/fi/je70qpfmwu6416ail48zq/msg?urlkey=jg8eazt0p95pkq0xj4ckrrt1y
 https://plus.admcgh.site/ChumoGH/msg
 )
 SERVIDORES=(
