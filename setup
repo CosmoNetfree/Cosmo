@@ -411,7 +411,7 @@ exit&&exit
 }
 }
 
-# --- FUNCIÓN GENERADORA Y VALIDADORA AUTOMÁTICA DE KEYS ---
+# --- GENERADOR AUTOMÁTICO DE KEYS ---
 generar_key_auto() {
     local arr_chars=("A" "B" "C" "K" "8" "3" "@" "?" "x" "9" "s")
     local c1="NewVPS-K"
@@ -439,25 +439,55 @@ msg -bar3
 echo -e "  ${FlT}${rUlq} ADMcgh+ ${_v1} | @ChumoGH OFICIAL 2025 ${rUlq}${FlT}  -" | lolcat
 msg -bar3
 figlet ' . ADMcgh . ' | boxes -d stone -p a0v0 | lolcat
-echo "           PEGA TU KEY (O ESCRIBE 'auto' PARA GENERAR UNA)" | lolcat
+echo "           PEGA TU KEY (O ESCRIBE 'auto' PARA BÚCLE AUTOMÁTICO)" | lolcat
 msg -bar3
 read -p "$(echo -e " \033[1;41m Key : \033[0;33m")" _filtro
 done
 
-# Opción automática si el usuario escribe auto
+# Bucle infinito automático hasta que una key sea exitosa y pase las validaciones
 if [[ "${_filtro}" == "auto" ]]; then
-    echo -e "\033[1;33mGenerando y probando keys automáticas...\033[0m"
-    for i in {1..10}; do
+    echo -e "\n\033[1;33m[!] Iniciando ciclo de búsqueda y validación automática de Keys...\033[0m\n"
+    while true; do
         _filtro=$(generar_key_auto)
-        echo -e "\033[1;36mProbando: $_filtro\033[0m"
-        # Forzar validación rápida o asignación temporal para salir del bucle
-        if [[ -n "$_filtro" ]]; then
-            break
+        clean_input="${_filtro}"
+        local uncryp="$(cryptic_transform $clean_input)"
+        local uncryp2="$(echo $uncryp | cut -d '/' -f2)"
+        
+        IiP=$(cryptic_transform "$clean_input" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+        
+        if lang_content=$(wget -q -T 3 -O - "$lang_url" 2>/dev/null); then
+            if [[ $lang_content =~ ${IiP} ]]; then
+                _checkBT="${IiP}"
+                _key="${_checkBT}:8888/${uncryp2}/-SPVweN"
+            else
+                unset _checkBT
+                continue
+            fi
+        else
+            unset _checkBT
+            continue
         fi
+        
+        new_id=$(uuidgen)
+        [[ -z ${new_id} ]] && new_id="${_checkBT}-${IP}"
+        
+        if wget --no-cache --no-check-certificate --max-redirect=20 -qO- "${_checkBT}:8888" >/dev/null 2>&1; then
+            echo -e "\033[1;36mProbando Key -> ${_filtro} [ Conexión OK ]\033[0m"
+            if wget --no-cache --no-check-certificate --max-redirect=20 -O $HOME/lista-arq ${_key}/$_trix/$_sys/${new_id} &>/dev/null; then
+                if [[ -e $HOME/lista-arq ]] && [[ ! $(cat $HOME/lista-arq|grep "KEY INVALIDA!") ]]; then
+                    echo -e "\n\033[1;32m[✔] ¡KEY VÁLIDA ENCONTRADA Y ACEPTADA! Avanzando...\033[0m\n"
+                    break
+                fi
+            fi
+        else
+            echo -e "\033[1;31mProbando Key -> ${_filtro} [ Falló, buscando otra... ]\033[0m"
+        fi
+        sleep 1
     done
+else
+    clean_input="${_filtro}"
 fi
 
-clean_input="${_filtro}"
 local uncryp="$(cryptic_transform $clean_input)"
 local uncryp2="$(echo $uncryp | cut -d '/' -f2)"
 
